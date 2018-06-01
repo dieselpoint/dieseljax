@@ -49,7 +49,7 @@ public class Server {
 
 		private String homeDir = "./";
 		private String host;
-		private int port = 8088;
+		private int port = 8080;
 		private boolean cors;
 		private boolean gzip = true;
 		private String staticFileDir;

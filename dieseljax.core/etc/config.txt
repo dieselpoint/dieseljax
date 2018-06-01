@@ -6,7 +6,7 @@
 # dir for static files. Can be absolute or relative to the homedir.
 # staticfiledir = site/dist/static
 
-# host = blah.com
-# port = 8088
+# host = example.com
+# port = 8080
 
 
