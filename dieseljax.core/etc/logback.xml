@@ -1,0 +1,45 @@
+<configuration>
+
+	<!-- simple logback conf file for testing. Overwrites file on every run. -->
+
+	<property name="MAIN_LOG_DIR" value="./logs" />
+	<property name="DEFAULT_ENCODER_PATTERN"
+		value="%date{yyyy-MM-dd HH:mm:ss.SSS} ${HOSTNAME} %logger %-4relative %-5level %msg%n" />
+	<property name="DEFAULT_FILENAME_PATTERN" value="-%d{yyyy-MM-dd}.log" />
+
+	<appender name="DEFAULT" class="ch.qos.logback.core.FileAppender">
+		<append>false</append>
+		<file>${MAIN_LOG_DIR}/root.log</file>
+		<encoder>
+			<pattern>${DEFAULT_ENCODER_PATTERN}</pattern>
+		</encoder>
+	</appender>
+
+	<!-- this is necessary to convince jersey, which uses jdk logging, to use logback -->
+	<contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
+		<!-- reset all previous level configurations of all j.u.l. loggers -->
+		<resetJUL>true</resetJUL>
+	</contextListener>
+
+
+	<!-- Test and dev appenders -->
+	<root level="INFO">
+		<appender-ref ref="DEFAULT" />
+	</root>
+
+	<!-- jersey is too chatty -->
+	<logger name="org.glassfish.jersey" level="WARN" additivity="false">
+		<appender-ref ref="DEFAULT" />
+	</logger>
+
+	<logger name="org.eclipse.jetty.server.RequestLog" level="INFO" additivity="false">
+		<appender class="ch.qos.logback.core.FileAppender">
+			<append>false</append>
+			<file>${MAIN_LOG_DIR}/requestlog.log</file>
+			<encoder>
+				<pattern>%msg%n</pattern>
+			</encoder>
+		</appender>
+	</logger>
+
+</configuration>

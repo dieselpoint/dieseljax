@@ -1,0 +1,12 @@
+# server properties file
+
+# Home directory for the app. Can be absolute or relative to the startup dir.
+# homedir = .
+
+# dir for static files. Can be absolute or relative to the homedir.
+# staticfiledir = site/dist/static
+
+# host = blah.com
+# port = 8088
+
+
