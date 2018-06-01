@@ -3,6 +3,8 @@ package com.dieselpoint.dieseldb.server;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 
+import com.dieselpoint.dieseljax.server.Server;
+
 public class TestServer {
 
 	public static void main(String[] args) throws Exception {

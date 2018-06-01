@@ -1,4 +1,4 @@
-package com.dieselpoint.dieseldb.util;
+package com.dieselpoint.dieseljax.util;
 
 import java.io.File;
 import java.io.FileInputStream;

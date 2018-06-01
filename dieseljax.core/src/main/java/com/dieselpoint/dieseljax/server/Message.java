@@ -1,4 +1,4 @@
-package com.dieselpoint.dieseldb.server;
+package com.dieselpoint.dieseljax.server;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;

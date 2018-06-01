@@ -1,4 +1,4 @@
-package com.dieselpoint.dieseldb.server;
+package com.dieselpoint.dieseljax.server;
 
 import java.io.File;
 import java.io.IOException;

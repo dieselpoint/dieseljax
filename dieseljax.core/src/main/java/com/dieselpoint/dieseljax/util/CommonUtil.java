@@ -1,4 +1,4 @@
-package com.dieselpoint.dieseldb.util;
+package com.dieselpoint.dieseljax.util;
 
 import java.beans.BeanInfo;
 import java.beans.Introspector;
