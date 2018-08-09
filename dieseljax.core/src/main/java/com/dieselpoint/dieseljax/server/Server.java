@@ -158,6 +158,8 @@ public class Server {
 
 		public Server build() {
 
+			homeDir = new File(homeDir).getAbsolutePath();
+			
 			Server.initLogging(homeDir);
 
 			Server server = new Server();
@@ -191,7 +193,7 @@ public class Server {
 
 			URI uri = URI.create("http://" + host + ":" + port + "/");
 
-			String msg = "Initializing server at " + uri.toString() + "...";
+			String msg = "Initializing server at " + uri.toString() + " in " + homeDir;
 			System.out.println(msg);
 			server.logger.info(msg);
 

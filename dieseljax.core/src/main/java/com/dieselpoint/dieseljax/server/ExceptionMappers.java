@@ -90,7 +90,7 @@ public class ExceptionMappers {
 
 				StringBuffer buf = new StringBuffer();
 				ConstraintViolationException cve = (ConstraintViolationException) exception;
-				for (ConstraintViolation cv : cve.getConstraintViolations()) {
+				for (ConstraintViolation<?> cv : cve.getConstraintViolations()) {
 					if (buf.length() > 0) {
 						buf.append(", ");
 					}
