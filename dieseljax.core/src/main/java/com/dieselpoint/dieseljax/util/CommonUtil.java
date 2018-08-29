@@ -137,7 +137,7 @@ public class CommonUtil {
 				}
 			}
 			
-			Class toClass = to.getClass();
+			Class<?> toClass = to.getClass();
 			
 			for (Field fromField: from.getClass().getFields()) {
 				
@@ -217,11 +217,12 @@ public class CommonUtil {
 	 * @param targetExceptionClass the type we're looking for
 	 * @return true if target type found
 	 */
+	@SafeVarargs
 	public static boolean containsException(Throwable containerException, Class<? extends Throwable>... targetExceptionClasses) {
 		Throwable current = containerException;
 		while (current != null) {
 			for (int i = 0; i < targetExceptionClasses.length; i++) {
-				if (current.getClass().isAssignableFrom(targetExceptionClasses[i])) {
+				if (current.getClass().equals(targetExceptionClasses[i])) {
 					return true;
 				}
 			}
