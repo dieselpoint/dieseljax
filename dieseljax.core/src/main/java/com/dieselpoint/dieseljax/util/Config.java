@@ -57,6 +57,14 @@ public class Config {
 		return Integer.parseInt(str);
 	}
 
+	public static double getDouble(String key, double defaultVal) {
+		String str = getString(key);
+		if (str == null) {
+			return defaultVal;
+		}
+		return Double.parseDouble(str);
+	}
+	
 	public static int getInt(String key) {
 		return getInt(key, -1);
 	}

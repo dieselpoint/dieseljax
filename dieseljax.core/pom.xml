@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>com.dieselpoint</groupId>
 		<artifactId>dieseljax</artifactId>
-		<version>0.3</version>
+		<version>1.0</version>
 	</parent>
 
 	<artifactId>dieseljax.core</artifactId>
@@ -21,7 +21,8 @@
 
 		<dependency>
 			<groupId>org.glassfish.jersey.containers</groupId>
-			<artifactId>jersey-container-jetty-http</artifactId>
+			<artifactId>jersey-container-jetty-servlet</artifactId>
+			<!-- http only <artifactId>jersey-container-jetty-http</artifactId> -->
 			<version>${jersey.version}</version>
 		</dependency>
 
@@ -32,15 +33,30 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.glassfish.jersey.media</groupId>
-			<artifactId>jersey-media-json-jackson</artifactId>
-			<version>${jersey.version}</version>
+			<groupId>com.fasterxml.jackson.jaxrs</groupId>
+			<artifactId>jackson-jaxrs-json-provider</artifactId>
+			<version>${jackson.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.glassfish.jersey.ext</groupId>
 			<artifactId>jersey-bean-validation</artifactId>
 			<version>${jersey.version}</version>
+		</dependency>
+
+		<!-- Jersey 2.27 requires this under Java 11. - - >
+		<dependency>
+			<groupId>javax.xml.bind</groupId>
+			<artifactId>jaxb-api</artifactId>
+			<version>2.3.0</version>
+		</dependency>
+		-->
+
+		<!-- Jersey needs this or it throws errors -->
+		<dependency>
+			<groupId>javax.activation</groupId>
+			<artifactId>activation</artifactId>
+			<version>1.1.1</version>
 		</dependency>
 
 		<dependency>
@@ -63,6 +79,7 @@
 			<artifactId>junit</artifactId>
 			<scope>test</scope>
 		</dependency>
+
 
 	</dependencies>
 </project>

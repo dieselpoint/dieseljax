@@ -93,7 +93,7 @@ public class CommonUtil {
 	 */
 	public static Object clone(Object from) {
 		try {
-			Object to = from.getClass().newInstance();
+			Object to = from.getClass().getDeclaredConstructor().newInstance();
 			copyBean(from, to);
 			return to;
 

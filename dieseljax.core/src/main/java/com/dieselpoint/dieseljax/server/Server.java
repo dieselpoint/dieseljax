@@ -20,13 +20,17 @@ import org.eclipse.jetty.server.RequestLog;
 import org.eclipse.jetty.server.Slf4jRequestLog;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.webapp.Configuration;
+import org.eclipse.jetty.webapp.WebAppContext;
+import org.eclipse.jetty.webapp.WebXmlConfiguration;
 import org.glassfish.jersey.CommonProperties;
-import org.glassfish.jersey.jackson.internal.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 import org.glassfish.jersey.jetty.JettyHttpContainerFactory;
 import org.glassfish.jersey.message.GZipEncoder;
-import org.glassfish.jersey.message.filtering.EntityFilteringFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.filter.EncodingFilter;
+import org.glassfish.jersey.servlet.ServletContainer;
+import org.glassfish.jersey.uri.UriComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
@@ -34,14 +38,16 @@ import org.slf4j.bridge.SLF4JBridgeHandler;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 
 /**
- * This is a generic http / jax rs server suitable for use in lots of applications.
+ * This is a generic http / jax rs server suitable for use in lots of
+ * applications.
  * 
  * @author ccleve
  */
 public class Server {
-	
+
 	private Logger logger;
 	private org.eclipse.jetty.server.Server jettyServer;
 
@@ -62,7 +68,8 @@ public class Server {
 		}
 
 		/**
-		 * Set the home directory. Paths to the /etc and other directories are relative to this dir. Default "./";
+		 * Set the home directory. Paths to the /etc and other directories are relative
+		 * to this dir. Default "./";
 		 */
 		public Builder homeDir(String homeDir) {
 			this.homeDir = homeDir;
@@ -102,7 +109,8 @@ public class Server {
 		}
 
 		/**
-		 * Serve static files from this directory. No default value. 
+		 * Serve static files from this directory. No default value.
+		 * 
 		 * @param staticFileDir path to files, can be relative to home dir or absolute
 		 */
 		public Builder staticFileDir(String staticFileDir) {
@@ -111,8 +119,9 @@ public class Server {
 		}
 
 		/**
-		 * Set a different RequestLog implementation. To disable request logging altogether, turn it off in the Logback
-		 * config file (or other logging config setup).
+		 * Set a different RequestLog implementation. To disable request logging
+		 * altogether, turn it off in the Logback config file (or other logging config
+		 * setup).
 		 */
 		public Builder requestLog(RequestLog requestLog) {
 			this.requestLog = requestLog;
@@ -120,8 +129,8 @@ public class Server {
 		}
 
 		/**
-		 * Add standard exception mappers. Default true. Set false to disable, and then register custom mappers by
-		 * calling .service() or .singleton().
+		 * Add standard exception mappers. Default true. Set false to disable, and then
+		 * register custom mappers by calling .service() or .singleton().
 		 */
 		public Builder standardExceptionMappers(boolean standardExceptionMappers) {
 			this.standardExceptionMappers = standardExceptionMappers;
@@ -141,15 +150,16 @@ public class Server {
 		 */
 		public Builder register(Class<?> service) {
 			/*
-			 * Because of type erasure, you can't just accumulate the list of services to register in a List and apply
-			 * them later. Must do it this way.
+			 * Because of type erasure, you can't just accumulate the list of services to
+			 * register in a List and apply them later. Must do it this way.
 			 */
 			app.register(service);
 			return this;
 		}
 
 		/**
-		 * Add a JAX-RS service class as a singleton object. Note that this singleton must be thread-safe.
+		 * Add a JAX-RS service class as a singleton object. Note that this singleton
+		 * must be thread-safe.
 		 */
 		public Builder register(Object service) {
 			app.register(service);
@@ -159,7 +169,7 @@ public class Server {
 		public Server build() {
 
 			homeDir = new File(homeDir).getAbsolutePath();
-			
+
 			Server.initLogging(homeDir);
 
 			Server server = new Server();
@@ -176,7 +186,7 @@ public class Server {
 
 			if (gzip) {
 				// enable gzip encoding
-				app.register(EntityFilteringFeature.class);
+				// TODO test this
 				EncodingFilter.enableFor(app, GZipEncoder.class);
 			}
 
@@ -184,8 +194,7 @@ public class Server {
 
 			if (host == null) {
 				try {
-					host = InetAddress.getLocalHost()
-							.getHostAddress();
+					host = InetAddress.getLocalHost().getHostAddress();
 				} catch (UnknownHostException e) {
 					throw new RuntimeException(e);
 				}
@@ -198,22 +207,72 @@ public class Server {
 			server.logger.info(msg);
 
 			/*
-			 * This is just an http server, not a servlet container. You can't inject HttpServletRequest
-			 * if you're using it. See https://stackoverflow.com/questions/50591432/jersey-cant-inject-httpservletrequest-getting-hk2-errors
-			 * for an alternative. Need JettyWebContainerFactory.
+			 * This is just an http server, not a servlet container. You can't inject
+			 * HttpServletRequest if you're using it. See
+			 * https://stackoverflow.com/questions/50591432/jersey-cant-inject-
+			 * httpservletrequest-getting-hk2-errors for an alternative. Need
+			 * JettyWebContainerFactory.
 			 */
-			server.jettyServer = JettyHttpContainerFactory.createServer(uri, app, false);
+			// server.jettyServer = JettyHttpContainerFactory.createServer(uri, app, false);
+
+			ServletContainer servlet = new ServletContainer(app);
+			//servlet.init();
+
+			String path = String.format("/%s", UriComponent.decodePath(uri.getPath(), true).get(1).toString());
+			WebAppContext context = new WebAppContext();
+			context.setDisplayName("JettyContext");
+			context.setContextPath(path);
+			context.setConfigurations(new Configuration[] { new WebXmlConfiguration() });
+			ServletHolder holder = new ServletHolder(servlet);
+			context.addServlet(holder, "/*");
+
+			/*
+			if (contextInitParams != null) {
+				for (Map.Entry<String, String> e : contextInitParams.entrySet()) {
+					context.setInitParameter(e.getKey(), e.getValue());
+				}
+			}
+
+			if (initParams != null) {
+				holder.setInitParameters(initParams);
+			}
+			*/
+			//server.jettyServer 
+			
+
+			
+			//org.eclipse.jetty.server.Server obj 
+			server.jettyServer =  JettyHttpContainerFactory.createServer(uri, false);
+			server.jettyServer.setHandler(context);
+			
+			
+			/*
+			 * // disables autodiscovery, which causes no end of problems
+			 * org.glassfish.jersey.CommonProperties.METAINF_SERVICES_LOOKUP_DISABLE =
+			 * "jersey.config.disableMetainfServicesLookup";
+			 * 
+			 * HashMap<String, String> props = new HashMap<>();
+			 * props.put(ServletProperties.JAXRS_APPLICATION_CLASS, app);
+			 * props.put(CommonProperties.METAINF_SERVICES_LOOKUP_DISABLE, "true");
+			 */
+
+			//server.jettyServer = JettyWebContainerFactory.create(uri, servlet);
+
+			// server.jettyServer = JettyWebContainerFactory.create(uri, app);
+			
 
 			setupRequestLog(server.jettyServer, requestLog);
 			setupStaticFiles(server.jettyServer, staticFileDir);
 			removeJettyServerHeader(server.jettyServer);
-			
+
 			server.jettyServer.setStopAtShutdown(true);
 			return server;
 		}
 
+
 		private void setupObjectMapper(ResourceConfig app, ObjectMapper objectMapper) {
-			// see https://stackoverflow.com/questions/18872931/custom-objectmapper-with-jersey-2-2-and-jackson-2-1
+			// see
+			// https://stackoverflow.com/questions/18872931/custom-objectmapper-with-jersey-2-2-and-jackson-2-1
 			// answer by svenwltr
 
 			if (objectMapper == null) {
@@ -247,12 +306,12 @@ public class Server {
 			resourceHandler.setWelcomeFiles(new String[] { "index.html" });
 			resourceHandler.setResourceBase(staticFileDir);
 			resourceHandler.setRedirectWelcome(true); // avoid NPE, see
-													  // https://github.com/eclipse/jetty.project/issues/1856, which
-													  // really isn't fixed
+														// https://github.com/eclipse/jetty.project/issues/1856, which
+														// really isn't fixed
 			HandlerList handlers = new HandlerList();
 			handlers.addHandler(resourceHandler); // resourceHandler must be first
 			handlers.addHandler(jaxHandler);
-			
+
 			jettyServer.setHandler(handlers);
 		}
 
@@ -262,8 +321,7 @@ public class Server {
 						"*.ICO", "*.js" };
 				Slf4jRequestLog rl = new Slf4jRequestLog();
 				rl.setExtended(true);
-				rl.setLogTimeZone(TimeZone.getDefault()
-						.getID());
+				rl.setLogTimeZone(TimeZone.getDefault().getID());
 				rl.setLogLatency(true);
 				rl.setIgnorePaths(ignorePaths);
 				requestLog = rl;
@@ -279,8 +337,7 @@ public class Server {
 			for (Connector y : server.getConnectors()) {
 				for (ConnectionFactory x : y.getConnectionFactories()) {
 					if (x instanceof HttpConnectionFactory) {
-						((HttpConnectionFactory) x).getHttpConfiguration()
-								.setSendServerVersion(false);
+						((HttpConnectionFactory) x).getHttpConfiguration().setSendServerVersion(false);
 					}
 				}
 			}
@@ -290,14 +347,11 @@ public class Server {
 			@Override
 			public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext)
 					throws IOException {
-				responseContext.getHeaders()
-						.add("Access-Control-Allow-Origin", "*");
-				responseContext.getHeaders()
-						.add("Access-Control-Allow-Credentials", "true");
-				responseContext.getHeaders()
-						.add("Access-Control-Allow-Headers", "origin, content-type, accept, authorization");
-				responseContext.getHeaders()
-						.add("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS, HEAD");
+				responseContext.getHeaders().add("Access-Control-Allow-Origin", "*");
+				responseContext.getHeaders().add("Access-Control-Allow-Credentials", "true");
+				responseContext.getHeaders().add("Access-Control-Allow-Headers",
+						"origin, content-type, accept, authorization");
+				responseContext.getHeaders().add("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS, HEAD");
 			}
 		}
 
@@ -309,15 +363,15 @@ public class Server {
 	public static Builder builder() {
 		return new Builder();
 	}
-	
+
 	public void start() throws Exception {
 		jettyServer.start();
 		System.out.println("Started.");
 	}
 
 	/**
-	 * Stops the server immediately. Can't be called while processing a request, so wrap it in a new thread if you need
-	 * to do that.
+	 * Stops the server immediately. Can't be called while processing a request, so
+	 * wrap it in a new thread if you need to do that.
 	 */
 	public void stopNow() throws Exception {
 		System.out.println("Stopping server...");
@@ -325,21 +379,22 @@ public class Server {
 	}
 
 	/**
-	 * Call this if an slf4j logger must get used before the server class is built. Sets
-	 * up logging properly.
+	 * Call this if an slf4j logger must get used before the server class is built.
+	 * Sets up logging properly.
 	 */
 	public static void initLogging(String homeDir) {
-		
+
 		// uncomment this to debug logback problems
-		// System.setProperty("logback.statusListenerClass", "ch.qos.logback.core.status.OnConsoleStatusListener");
+		// System.setProperty("logback.statusListenerClass",
+		// "ch.qos.logback.core.status.OnConsoleStatusListener");
 
 		// must init the logger *after* system properties set up
 		File logbackConfFile = new File(homeDir + "/etc/logback.xml");
 		System.setProperty("logback.configurationFile", logbackConfFile.getAbsolutePath());
 
-		// fixes jul logging
+		// redirects java.util.logging (jul) to slf4j. Jersey uses jul.
 		SLF4JBridgeHandler.removeHandlersForRootLogger();
 		SLF4JBridgeHandler.install();
 	}
-	
+
 }
