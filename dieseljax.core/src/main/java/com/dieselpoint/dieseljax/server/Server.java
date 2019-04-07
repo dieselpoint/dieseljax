@@ -350,7 +350,8 @@ public class Server {
 				responseContext.getHeaders().add("Access-Control-Allow-Origin", "*");
 				responseContext.getHeaders().add("Access-Control-Allow-Credentials", "true");
 				responseContext.getHeaders().add("Access-Control-Allow-Headers",
-						"origin, content-type, accept, authorization");
+						"origin, content-type, accept, authorization, cache-control, x-requested-with");
+				//responseContext.getHeaders().add("Access-Control-Allow-Headers", "*");  // does not work
 				responseContext.getHeaders().add("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS, HEAD");
 			}
 		}
