@@ -44,10 +44,6 @@
 		<!-- keep in sync with jersey <jetty.version>9.4.7.v20170914</jetty.version> -->
 	</properties>
 
-	<prerequisites>
-		<maven>3.3.9</maven>
-	</prerequisites>
-
 	<modules>
 		<module>dieseljax.core</module>
 	</modules>
