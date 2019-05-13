@@ -19,6 +19,12 @@ public class Message {
 		this.success = success;
 		this.message = message;
 	}
+	
+	public Message(boolean success, String message, int statusCode) {
+		this.success = success;
+		this.message = message;
+		this.statusCode = statusCode;
+	}
 
 	public boolean getSuccess() {
 		return success;
@@ -53,11 +59,11 @@ public class Message {
 	}
 	
 	public static Message success() {
-		return new Message(true, null);
+		return new Message(true, null, Status.OK.getStatusCode());
 	}
 
 	public static Message success(String message) {
-		return new Message(true, message);
+		return new Message(true, message, Status.OK.getStatusCode());
 	}
 
 	public static Message failure(int statusCode, String message) {
