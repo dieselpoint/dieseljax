@@ -14,12 +14,9 @@ import javax.ws.rs.container.ContainerResponseFilter;
 
 import org.eclipse.jetty.server.ConnectionFactory;
 import org.eclipse.jetty.server.Connector;
-import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.RequestLog;
 import org.eclipse.jetty.server.Slf4jRequestLog;
-import org.eclipse.jetty.server.handler.HandlerList;
-import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.webapp.Configuration;
 import org.eclipse.jetty.webapp.WebAppContext;
@@ -206,63 +203,57 @@ public class Server {
 			System.out.println(msg);
 			server.logger.info(msg);
 
-			/*
-			 * This is just an http server, not a servlet container. You can't inject
-			 * HttpServletRequest if you're using it. See
+			/*-
+			 * We use a full-blown WebAppContext instead of a lighter-weight http container
+			 * for two reasons:
+			 * 
+			 * 1. You can't inject HttpServletRequest without a servlet container. See
 			 * https://stackoverflow.com/questions/50591432/jersey-cant-inject-
-			 * httpservletrequest-getting-hk2-errors for an alternative. Need
-			 * JettyWebContainerFactory.
+			 * httpservletrequest-getting-hk2-errors for an alternative.
+			 * 
+			 * 2. The WebAppContext uses a DefaultServlet internally, which we use to handle
+			 * serving of static resources.
+			 * 
+			 * Unresolved issue: haven't figured out how to configure DefaultServlet.
+			 * See below.
 			 */
-			// server.jettyServer = JettyHttpContainerFactory.createServer(uri, app, false);
-
-			ServletContainer servlet = new ServletContainer(app);
-			//servlet.init();
 
 			String path = String.format("/%s", UriComponent.decodePath(uri.getPath(), true).get(1).toString());
 			WebAppContext context = new WebAppContext();
 			context.setDisplayName("JettyContext");
 			context.setContextPath(path);
 			context.setConfigurations(new Configuration[] { new WebXmlConfiguration() });
+			
+			// add the jersey servlet
+			ServletContainer servlet = new ServletContainer(app);
 			ServletHolder holder = new ServletHolder(servlet);
 			context.addServlet(holder, "/*");
 
-			/*
-			if (contextInitParams != null) {
-				for (Map.Entry<String, String> e : contextInitParams.entrySet()) {
-					context.setInitParameter(e.getKey(), e.getValue());
+			// add static file serving
+			if (staticFileDir != null) {
+				if (!(new File(staticFileDir).isAbsolute())) {
+					staticFileDir = (new File(homeDir, staticFileDir)).getAbsolutePath();
 				}
+				context.setResourceBase(staticFileDir);
 			}
-
-			if (initParams != null) {
-				holder.setInitParameters(initParams);
-			}
-			*/
-			//server.jettyServer 
 			
-
-			
-			//org.eclipse.jetty.server.Server obj 
-			server.jettyServer =  JettyHttpContainerFactory.createServer(uri, false);
-			server.jettyServer.setHandler(context);
-			
-			
-			/*
-			 * // disables autodiscovery, which causes no end of problems
-			 * org.glassfish.jersey.CommonProperties.METAINF_SERVICES_LOOKUP_DISABLE =
-			 * "jersey.config.disableMetainfServicesLookup";
+			/*-
+			 * Configure the DefaultServlet
+			 * This does not work:
+			 * context.setInitParameter("dirAllowed", "true");
+			 * or this:
+			 * context.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "true");
 			 * 
-			 * HashMap<String, String> props = new HashMap<>();
-			 * props.put(ServletProperties.JAXRS_APPLICATION_CLASS, app);
-			 * props.put(CommonProperties.METAINF_SERVICES_LOOKUP_DISABLE, "true");
+			 * Here are all the settings:
+			 * http://www.eclipse.org/jetty/javadoc/9.4.12.v20180830/org/eclipse/jetty/servlet/DefaultServlet.html
+			 * 
+			 * This requires more research.
 			 */
 
-			//server.jettyServer = JettyWebContainerFactory.create(uri, servlet);
-
-			// server.jettyServer = JettyWebContainerFactory.create(uri, app);
-			
+			server.jettyServer =  JettyHttpContainerFactory.createServer(uri, false);
+			server.jettyServer.setHandler(context);
 
 			setupRequestLog(server.jettyServer, requestLog);
-			setupStaticFiles(server.jettyServer, staticFileDir);
 			removeJettyServerHeader(server.jettyServer);
 
 			server.jettyServer.setStopAtShutdown(true);
@@ -290,6 +281,9 @@ public class Server {
 			app.register(provider);
 		}
 
+		/**
+		 * Obsolete, but leave it here for now.
+		 * /
 		private void setupStaticFiles(org.eclipse.jetty.server.Server jettyServer, String staticFileDir) {
 			if (staticFileDir == null) {
 				return;
@@ -298,7 +292,7 @@ public class Server {
 			if (!(new File(staticFileDir).isAbsolute())) {
 				staticFileDir = (new File(homeDir, staticFileDir)).getAbsolutePath();
 			}
-
+			
 			// this section adds a handler for static files
 			Handler jaxHandler = jettyServer.getHandler();
 			ResourceHandler resourceHandler = new ResourceHandler();
@@ -314,6 +308,7 @@ public class Server {
 
 			jettyServer.setHandler(handlers);
 		}
+		*/
 
 		private void setupRequestLog(org.eclipse.jetty.server.Server jettyServer, RequestLog requestLog) {
 			if (requestLog == null) {
