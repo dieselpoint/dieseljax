@@ -3,6 +3,7 @@ package com.dieselpoint.dieseljax.server;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import javax.validation.ValidationException;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.NotAllowedException;
 import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.NotFoundException;
@@ -18,6 +19,7 @@ import org.slf4j.LoggerFactory;
 public class ExceptionMappers {
 
 	public static void addExceptionMappers(ResourceConfig app) {
+		app.register(BadRequestExceptionMapper.class);
 		app.register(WebAppExceptionMapper.class);
 		app.register(ValidationExceptionMapper.class);
 		app.register(OtherExceptionMapper.class);
@@ -46,6 +48,19 @@ public class ExceptionMappers {
 		}
 	}
 
+	
+	public static class BadRequestExceptionMapper implements ExceptionMapper<BadRequestException> {
+
+		Logger logger = LoggerFactory.getLogger(this.getClass());
+
+		@Override
+		public Response toResponse(BadRequestException e) {
+			Status status = Status.fromStatusCode(e.getResponse().getStatus());
+			logger.error(e.getMessage()); // log it, but not the whole stack trace
+			return Message.failureResponse(unwrapException(e), status);
+		}
+	}
+	
 	
 	public static class WebAppExceptionMapper implements ExceptionMapper<WebApplicationException> {
 
@@ -117,24 +132,11 @@ public class ExceptionMappers {
 	}
 
 	
-	private static Throwable unwrapException(Throwable t) {
+	public static Throwable unwrapException(Throwable t) {
 		while (t.getCause() != null && t != t.getCause()) {
 			t = t.getCause();
 		}
 		return t;
 	}
 
-	/*
-	private static void doUnwrapException(StringBuffer sb, Throwable t) {
-		if (t == null) {
-			return;
-		}
-		sb.append(t.toString());
-		if (t.getCause() != null && t != t.getCause()) {
-			sb.append('[');
-			doUnwrapException(sb, t.getCause());
-			sb.append(']');
-		}
-	}
-	*/
 }
