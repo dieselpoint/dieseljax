@@ -168,7 +168,14 @@ public class Server {
 			homeDir = new File(homeDir).getAbsolutePath();
 
 			Server.initLogging(homeDir);
-
+			
+			/*
+			 * Disable WADL. It's not used, and it requires jaxb xml jars which
+			 * don't exist under Java 11, and causes multiple headaches.
+			 * https://medium.com/@Leejjon_net/update-to-the-latest-jersey-2-29-which-breaks-jaxb-and-thus-wadl-fe5cda38a1b3
+			 */
+			app.property("jersey.config.server.wadl.disableWadl", true);
+			
 			Server server = new Server();
 			server.logger = LoggerFactory.getLogger(this.getClass());
 

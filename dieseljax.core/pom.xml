@@ -26,10 +26,18 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
 			</plugin>
+			<!-- see notes in parent pom 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
 			</plugin>
+			-->
+			<plugin>
+				<!-- this does not work. -->
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-enforcer-plugin</artifactId>
+			</plugin>
+
 			<plugin>
 				<groupId>org.sonatype.plugins</groupId>
 				<artifactId>nexus-staging-maven-plugin</artifactId>
@@ -57,7 +65,7 @@
 			<!-- http only <artifactId>jersey-container-jetty-http</artifactId> -->
 			<version>${jersey.version}</version>
 		</dependency>
-
+		
 		<dependency>
 			<groupId>org.glassfish.jersey.inject</groupId>
 			<artifactId>jersey-hk2</artifactId>
@@ -76,12 +84,8 @@
 			<version>${jersey.version}</version>
 		</dependency>
 
-		<!-- Jersey 2.27 requires this under Java 11. -->
-		<dependency>
-			<groupId>javax.xml.bind</groupId>
-			<artifactId>jaxb-api</artifactId>
-			<version>2.3.0</version>
-		</dependency>
+		<!-- Jersey 2.27 requires this under Java 11. <dependency> <groupId>javax.xml.bind</groupId> 
+			<artifactId>jaxb-api</artifactId> <version>2.4.0-b180830.0359</version> </dependency> -->
 
 		<!-- Jersey needs this or it throws errors -->
 		<dependency>
