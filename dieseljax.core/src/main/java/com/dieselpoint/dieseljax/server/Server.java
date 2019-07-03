@@ -17,12 +17,15 @@ import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.RequestLog;
 import org.eclipse.jetty.server.Slf4jRequestLog;
+import org.eclipse.jetty.servlet.DefaultServlet;
+import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.webapp.Configuration;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.eclipse.jetty.webapp.WebXmlConfiguration;
 import org.glassfish.jersey.CommonProperties;
 import org.glassfish.jersey.jetty.JettyHttpContainerFactory;
+import org.glassfish.jersey.jetty.servlet.JettyWebContainerFactory;
 import org.glassfish.jersey.message.GZipEncoder;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.filter.EncodingFilter;
@@ -56,6 +59,8 @@ public class Server {
 		private boolean cors;
 		private boolean gzip = true;
 		private String staticFileDir;
+		private String staticContextPath;
+		private String serviceContextPath = "/";
 		private RequestLog requestLog;
 		private boolean standardExceptionMappers = true;
 		private ObjectMapper objectMapper;
@@ -106,12 +111,28 @@ public class Server {
 		}
 
 		/**
-		 * Serve static files from this directory. No default value.
+		 * Serve static files from this directory at this path. No default values.
 		 * 
-		 * @param staticFileDir path to files, can be relative to home dir or absolute
+		 * @param staticFileDir     path to files, can be relative to home dir or
+		 *                          absolute
+		 * @param staticContextPath /context at which static files are served
 		 */
-		public Builder staticFileDir(String staticFileDir) {
+		public Builder staticFiles(String staticFileDir, String staticContextPath) {
 			this.staticFileDir = staticFileDir;
+			this.staticContextPath = staticContextPath;
+			return this;
+		}
+
+		/**
+		 * Set the prefix for the path at which services will appear. For example,
+		 * .serviceContextPath("/api") would mean that any service that had
+		 * an @Path("/foo") would appear at http://host:port/api/foo.
+		 * 
+		 * @param serviceContextPath
+		 * @return
+		 */
+		public Builder serviceContextPath(String serviceContextPath) {
+			this.serviceContextPath = serviceContextPath;
 			return this;
 		}
 
@@ -168,14 +189,7 @@ public class Server {
 			homeDir = new File(homeDir).getAbsolutePath();
 
 			Server.initLogging(homeDir);
-			
-			/*
-			 * Disable WADL. It's not used, and it requires jaxb xml jars which
-			 * don't exist under Java 11, and causes multiple headaches.
-			 * https://medium.com/@Leejjon_net/update-to-the-latest-jersey-2-29-which-breaks-jaxb-and-thus-wadl-fe5cda38a1b3
-			 */
-			app.property("jersey.config.server.wadl.disableWadl", true);
-			
+
 			Server server = new Server();
 			server.logger = LoggerFactory.getLogger(this.getClass());
 
@@ -210,63 +224,52 @@ public class Server {
 			System.out.println(msg);
 			server.logger.info(msg);
 
-			/*-
-			 * We use a full-blown WebAppContext instead of a lighter-weight http container
-			 * for two reasons:
-			 * 
-			 * 1. You can't inject HttpServletRequest without a servlet container. See
-			 * https://stackoverflow.com/questions/50591432/jersey-cant-inject-
-			 * httpservletrequest-getting-hk2-errors for an alternative.
-			 * 
-			 * 2. The WebAppContext uses a DefaultServlet internally, which we use to handle
-			 * serving of static resources.
-			 * 
-			 * Unresolved issue: haven't figured out how to configure DefaultServlet.
-			 * See below.
+			org.eclipse.jetty.server.Server jettyServer = new org.eclipse.jetty.server.Server(port);
+
+			/*
+			 * How to do all this:
+			 * https://www.eclipse.org/jetty/documentation/current/embedding-jetty.html
 			 */
 
-			String path = String.format("/%s", UriComponent.decodePath(uri.getPath(), true).get(1).toString());
-			WebAppContext context = new WebAppContext();
-			context.setDisplayName("JettyContext");
-			context.setContextPath(path);
-			context.setConfigurations(new Configuration[] { new WebXmlConfiguration() });
-			
+			// change this to enable sessions or change security
+			int options = ServletContextHandler.NO_SESSIONS | ServletContextHandler.NO_SECURITY
+					| ServletContextHandler.GZIP;
+			ServletContextHandler context = new ServletContextHandler(options);
+			context.setContextPath("/");
+			jettyServer.setHandler(context);
+
 			// add the jersey servlet
-			ServletContainer servlet = new ServletContainer(app);
-			ServletHolder holder = new ServletHolder(servlet);
-			context.addServlet(holder, "/*");
+			ServletContainer jerseyServlet = new ServletContainer(app);
+			ServletHolder holder = new ServletHolder(jerseyServlet);
+			context.addServlet(holder, serviceContextPath + "/*");
 
 			// add static file serving
 			if (staticFileDir != null) {
 				if (!(new File(staticFileDir).isAbsolute())) {
-					staticFileDir = (new File(homeDir, staticFileDir)).getAbsolutePath();
+					staticFileDir = getCanonicalPath(new File(homeDir, staticFileDir));
 				}
-				context.setResourceBase(staticFileDir);
+				ServletHolder defaultServletHolder = context.addServlet(DefaultServlet.class, "/");
+				defaultServletHolder.setInitParameter("resourceBase", staticFileDir);
+				defaultServletHolder.setInitParameter("dirAllowed", "false");
+				// defaultServletHolder.setInitParameter("useFileMappedBuffer", "false");
 			}
-			
-			/*-
-			 * Configure the DefaultServlet
-			 * This does not work:
-			 * context.setInitParameter("dirAllowed", "true");
-			 * or this:
-			 * context.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "true");
-			 * 
-			 * Here are all the settings:
-			 * http://www.eclipse.org/jetty/javadoc/9.4.12.v20180830/org/eclipse/jetty/servlet/DefaultServlet.html
-			 * 
-			 * This requires more research.
-			 */
 
-			server.jettyServer =  JettyHttpContainerFactory.createServer(uri, false);
-			server.jettyServer.setHandler(context);
+			setupRequestLog(jettyServer, requestLog);
+			removeJettyServerHeader(jettyServer);
+			jettyServer.setStopAtShutdown(true);
 
-			setupRequestLog(server.jettyServer, requestLog);
-			removeJettyServerHeader(server.jettyServer);
+			server.jettyServer = jettyServer;
 
-			server.jettyServer.setStopAtShutdown(true);
 			return server;
 		}
 
+		private String getCanonicalPath(File file) {
+			try {
+				return file.getCanonicalPath();
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
 
 		private void setupObjectMapper(ResourceConfig app, ObjectMapper objectMapper) {
 			// see
@@ -289,33 +292,26 @@ public class Server {
 		}
 
 		/**
-		 * Obsolete, but leave it here for now.
-		 * /
-		private void setupStaticFiles(org.eclipse.jetty.server.Server jettyServer, String staticFileDir) {
-			if (staticFileDir == null) {
-				return;
-			}
-
-			if (!(new File(staticFileDir).isAbsolute())) {
-				staticFileDir = (new File(homeDir, staticFileDir)).getAbsolutePath();
-			}
-			
-			// this section adds a handler for static files
-			Handler jaxHandler = jettyServer.getHandler();
-			ResourceHandler resourceHandler = new ResourceHandler();
-			resourceHandler.setDirectoriesListed(false);
-			resourceHandler.setWelcomeFiles(new String[] { "index.html" });
-			resourceHandler.setResourceBase(staticFileDir);
-			resourceHandler.setRedirectWelcome(true); // avoid NPE, see
-														// https://github.com/eclipse/jetty.project/issues/1856, which
-														// really isn't fixed
-			HandlerList handlers = new HandlerList();
-			handlers.addHandler(resourceHandler); // resourceHandler must be first
-			handlers.addHandler(jaxHandler);
-
-			jettyServer.setHandler(handlers);
-		}
-		*/
+		 * Obsolete, but leave it here for now. / private void
+		 * setupStaticFiles(org.eclipse.jetty.server.Server jettyServer, String
+		 * staticFileDir) { if (staticFileDir == null) { return; }
+		 * 
+		 * if (!(new File(staticFileDir).isAbsolute())) { staticFileDir = (new
+		 * File(homeDir, staticFileDir)).getAbsolutePath(); }
+		 * 
+		 * // this section adds a handler for static files Handler jaxHandler =
+		 * jettyServer.getHandler(); ResourceHandler resourceHandler = new
+		 * ResourceHandler(); resourceHandler.setDirectoriesListed(false);
+		 * resourceHandler.setWelcomeFiles(new String[] { "index.html" });
+		 * resourceHandler.setResourceBase(staticFileDir);
+		 * resourceHandler.setRedirectWelcome(true); // avoid NPE, see //
+		 * https://github.com/eclipse/jetty.project/issues/1856, which // really isn't
+		 * fixed HandlerList handlers = new HandlerList();
+		 * handlers.addHandler(resourceHandler); // resourceHandler must be first
+		 * handlers.addHandler(jaxHandler);
+		 * 
+		 * jettyServer.setHandler(handlers); }
+		 */
 
 		private void setupRequestLog(org.eclipse.jetty.server.Server jettyServer, RequestLog requestLog) {
 			if (requestLog == null) {
@@ -353,7 +349,8 @@ public class Server {
 				responseContext.getHeaders().add("Access-Control-Allow-Credentials", "true");
 				responseContext.getHeaders().add("Access-Control-Allow-Headers",
 						"origin, content-type, accept, authorization, cache-control, x-requested-with");
-				//responseContext.getHeaders().add("Access-Control-Allow-Headers", "*");  // does not work
+				// responseContext.getHeaders().add("Access-Control-Allow-Headers", "*"); //
+				// does not work
 				responseContext.getHeaders().add("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS, HEAD");
 			}
 		}
