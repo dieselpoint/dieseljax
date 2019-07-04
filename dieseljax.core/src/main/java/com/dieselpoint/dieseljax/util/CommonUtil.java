@@ -214,7 +214,7 @@ public class CommonUtil {
 	 * Return true if the container exception or any of its chained getCause() exceptions is
 	 * of the specified target type.
 	 * @param containerException containing exception
-	 * @param targetExceptionClass the type we're looking for
+	 * @param targetExceptionClasses the type we're looking for
 	 * @return true if target type found
 	 */
 	@SafeVarargs

@@ -99,12 +99,25 @@
 					</configuration>
 				</plugin>
 				<!-- Commenting this out because 3.0.0 fails with an NPE, and 3.1.0 fails 
-					with a JAVA_HOME not found exception. This plugin is a waste of time. <plugin> 
-					<groupId>org.apache.maven.plugins</groupId> <artifactId>maven-javadoc-plugin</artifactId> 
-					<version>3.1.0</version> <configuration> <additionalparam>-Xdoclint:none</additionalparam> 
-					<additionalOptions>-Xdoclint:none</additionalOptions> </configuration> <executions> 
-					<execution> <id>attach-javadocs</id> <goals> <goal>jar</goal> </goals> </execution> 
-					</executions> </plugin> -->
+					with a JAVA_HOME not found exception. This plugin is a waste of time. -->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-javadoc-plugin</artifactId>
+					<version>3.1.0</version>
+					<configuration>
+						<javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>
+						<additionalparam>-Xdoclint:none</additionalparam>
+						<additionalOptions>-Xdoclint:none</additionalOptions>
+					</configuration>
+					<executions>
+						<execution>
+							<id>attach-javadocs</id>
+							<goals>
+								<goal>jar</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
 				<!-- this plugin is also a waste of time, because it fails to work with 
 					mvn versions:display-plugin-updates -->
 				<plugin>
@@ -139,6 +152,11 @@
 					</configuration>
 				</plugin>
 
+				<!-- This doesn't work, because the deploy phase is too late, and the 
+					verify phase doesn't allow others to do an install without my gpg keys. Yet 
+					more Maven stupidity. The convoluted, unnecessary, half-assed workaround 
+					is here: https://stackoverflow.com/questions/36824032/proper-execution-phase-for-maven-gpg-plugin 
+					Long term, the solution is to dump Maven Central altogether -->
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-gpg-plugin</artifactId>
