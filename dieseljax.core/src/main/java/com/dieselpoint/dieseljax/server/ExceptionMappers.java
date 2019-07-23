@@ -16,16 +16,19 @@ import org.glassfish.jersey.server.ResourceConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+
 public class ExceptionMappers {
 
 	public static void addExceptionMappers(ResourceConfig app) {
 		app.register(BadRequestExceptionMapper.class);
 		app.register(WebAppExceptionMapper.class);
 		app.register(ValidationExceptionMapper.class);
-		app.register(OtherExceptionMapper.class);
 		app.register(NotAllowedExceptionMapper.class);
 		app.register(NotAuthorizedExceptionMapper.class);
 		app.register(NotFoundExceptionMapper.class);
+		app.register(InvalidFormatExceptionMapper.class);
+		app.register(OtherExceptionMapper.class);
 	}
 
 	public static class NotAuthorizedExceptionMapper implements ExceptionMapper<NotAuthorizedException> {
@@ -82,7 +85,19 @@ public class ExceptionMappers {
 			return Message.failureResponse(e, status);
 		}
 	}
-	
+
+	/**
+	 * Jackson exception when can't deserialize a field.
+	 * @author ccleve
+	 */
+	public static class InvalidFormatExceptionMapper implements ExceptionMapper<InvalidFormatException> {
+
+		@Override
+		public Response toResponse(InvalidFormatException e) {
+			// originalMessage() omits location information
+			return Message.failureResponse(e.getOriginalMessage(), Status.BAD_REQUEST);
+		}
+	}
 	
 	public static class OtherExceptionMapper implements ExceptionMapper<Throwable> {
 
