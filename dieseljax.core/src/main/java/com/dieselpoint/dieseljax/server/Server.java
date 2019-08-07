@@ -8,10 +8,6 @@ import java.net.UnknownHostException;
 import java.util.Collections;
 import java.util.TimeZone;
 
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerResponseContext;
-import javax.ws.rs.container.ContainerResponseFilter;
-
 import org.eclipse.jetty.server.ConnectionFactory;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.HttpConnectionFactory;
@@ -20,17 +16,11 @@ import org.eclipse.jetty.server.Slf4jRequestLog;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.webapp.Configuration;
-import org.eclipse.jetty.webapp.WebAppContext;
-import org.eclipse.jetty.webapp.WebXmlConfiguration;
 import org.glassfish.jersey.CommonProperties;
-import org.glassfish.jersey.jetty.JettyHttpContainerFactory;
-import org.glassfish.jersey.jetty.servlet.JettyWebContainerFactory;
 import org.glassfish.jersey.message.GZipEncoder;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.filter.EncodingFilter;
 import org.glassfish.jersey.servlet.ServletContainer;
-import org.glassfish.jersey.uri.UriComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
@@ -199,7 +189,10 @@ public class Server {
 
 			if (cors) {
 				// add CORS support
-				app.register(new CorsFilter());
+				CorsFilter cf = new CorsFilter();
+				cf.getAllowedOrigins().add("*");
+				cf.setCorsMaxAge(7200); // seconds, is the max value accepted by Chrome.
+				app.register(cf);
 			}
 
 			if (gzip) {
@@ -248,7 +241,15 @@ public class Server {
 				if (!(new File(staticFileDir).isAbsolute())) {
 					staticFileDir = getCanonicalPath(new File(homeDir, staticFileDir));
 				}
-				ServletHolder defaultServletHolder = context.addServlet(DefaultServlet.class, "/");
+				
+				String path = this.staticContextPath;
+				if (path == null) {
+					path = "/";
+				}
+				
+				// TODO this path doesn't seem to work unless it is "/"
+				
+				ServletHolder defaultServletHolder = context.addServlet(DefaultServlet.class, path);
 				defaultServletHolder.setInitParameter("resourceBase", staticFileDir);
 				defaultServletHolder.setInitParameter("dirAllowed", "false");
 				// defaultServletHolder.setInitParameter("useFileMappedBuffer", "false");
@@ -341,6 +342,7 @@ public class Server {
 			}
 		}
 
+		/*-
 		public class CorsFilter implements ContainerResponseFilter {
 			@Override
 			public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext)
@@ -354,6 +356,12 @@ public class Server {
 				responseContext.getHeaders().add("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS, HEAD");
 			}
 		}
+		*/
+		
+
+		
+		
+		
 
 	}
 
