@@ -276,11 +276,11 @@ public class Server {
 			// see
 			// https://stackoverflow.com/questions/18872931/custom-objectmapper-with-jersey-2-2-and-jackson-2-1
 			// answer by svenwltr
+			
+			// disable all autodiscovery so it doesn't find the wrong implementation
+			app.addProperties(Collections.singletonMap(CommonProperties.FEATURE_AUTO_DISCOVERY_DISABLE, true));
 
 			if (objectMapper == null) {
-				// disable all autodiscovery so it doesn't find the wrong implementation
-				app.addProperties(Collections.singletonMap(CommonProperties.FEATURE_AUTO_DISCOVERY_DISABLE, true));
-
 				objectMapper = new ObjectMapper();
 				objectMapper.setSerializationInclusion(Include.NON_NULL); // also see NON_EMPTY
 				// mapper.setSerializationInclusion(Include.NON_DEFAULT);
