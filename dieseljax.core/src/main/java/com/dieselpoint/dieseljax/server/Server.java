@@ -241,14 +241,14 @@ public class Server {
 				if (!(new File(staticFileDir).isAbsolute())) {
 					staticFileDir = getCanonicalPath(new File(homeDir, staticFileDir));
 				}
-				
+
 				String path = this.staticContextPath;
 				if (path == null) {
 					path = "/";
 				}
-				
+
 				// TODO this path doesn't seem to work unless it is "/"
-				
+
 				ServletHolder defaultServletHolder = context.addServlet(DefaultServlet.class, path);
 				defaultServletHolder.setInitParameter("resourceBase", staticFileDir);
 				defaultServletHolder.setInitParameter("dirAllowed", "false");
@@ -276,7 +276,7 @@ public class Server {
 			// see
 			// https://stackoverflow.com/questions/18872931/custom-objectmapper-with-jersey-2-2-and-jackson-2-1
 			// answer by svenwltr
-			
+
 			// disable all autodiscovery so it doesn't find the wrong implementation
 			app.addProperties(Collections.singletonMap(CommonProperties.FEATURE_AUTO_DISCOVERY_DISABLE, true));
 
@@ -316,8 +316,21 @@ public class Server {
 
 		private void setupRequestLog(org.eclipse.jetty.server.Server jettyServer, RequestLog requestLog) {
 			if (requestLog == null) {
+
 				String[] ignorePaths = { "/images/*", "/img/*", "*.css", "*.jpg", "*.JPG", "*.gif", "*.GIF", "*.ico",
 						"*.ICO", "*.js" };
+
+				/*-
+				 * This is the newer way of handling request logs. Slf4jRequestLog is deprecated
+				 * in the newest version of Jetty. Unfortunately, the development of Jersey is 
+				 * lagging and uses an older Jetty, so we have to use the old request logger.
+				 * Current Jersey version is 2.28. Wait to see what 2.29 does.		
+				Slf4jRequestLogWriter writer = new Slf4jRequestLogWriter();
+				CustomRequestLog crl = new CustomRequestLog(writer, CustomRequestLog.EXTENDED_NCSA_FORMAT);
+				crl.setIgnorePaths(ignorePaths);
+				server.setRequestLog(crl);
+				*/
+
 				Slf4jRequestLog rl = new Slf4jRequestLog();
 				rl.setExtended(true);
 				rl.setLogTimeZone(TimeZone.getDefault().getID());
@@ -341,27 +354,6 @@ public class Server {
 				}
 			}
 		}
-
-		/*-
-		public class CorsFilter implements ContainerResponseFilter {
-			@Override
-			public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext)
-					throws IOException {
-				responseContext.getHeaders().add("Access-Control-Allow-Origin", "*");
-				responseContext.getHeaders().add("Access-Control-Allow-Credentials", "true");
-				responseContext.getHeaders().add("Access-Control-Allow-Headers",
-						"origin, content-type, accept, authorization, cache-control, x-requested-with");
-				// responseContext.getHeaders().add("Access-Control-Allow-Headers", "*"); //
-				// does not work
-				responseContext.getHeaders().add("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS, HEAD");
-			}
-		}
-		*/
-		
-
-		
-		
-		
 
 	}
 
