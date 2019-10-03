@@ -40,6 +40,7 @@ public class Server {
 
 	private Logger logger;
 	private org.eclipse.jetty.server.Server jettyServer;
+	private ResourceConfig app;
 
 	public static class Builder {
 
@@ -181,6 +182,7 @@ public class Server {
 			Server.initLogging(homeDir);
 
 			Server server = new Server();
+			server.app = app;
 			server.logger = LoggerFactory.getLogger(this.getClass());
 
 			if (standardExceptionMappers) {
@@ -397,4 +399,7 @@ public class Server {
 		SLF4JBridgeHandler.install();
 	}
 
+	public ResourceConfig getApp() {
+		return app;
+	}
 }
