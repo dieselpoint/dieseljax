@@ -72,7 +72,12 @@ public class ExceptionMappers {
 		@Override
 		public Response toResponse(WebApplicationException e) {
 			Status status = Status.fromStatusCode(e.getResponse().getStatus());
-			logger.error(e.getMessage(), e);
+			
+			// don't log 404s
+			if (status.getStatusCode() != 404) {
+				logger.error(e.getMessage(), e);
+			}
+			
 			return Message.failureResponse(unwrapException(e), status);
 		}
 	}
