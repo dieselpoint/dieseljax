@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>com.dieselpoint</groupId>
 		<artifactId>dieseljax</artifactId>
-		<version>1.2</version>
+		<version>1.3</version>
 	</parent>
 
 	<artifactId>dieseljax.core</artifactId>
@@ -83,7 +83,7 @@
 		</dependency>
 
 		<!-- Jersey 2.28 requires these next four dependencies under Java 11. Jersey 
-			2.29 was supposed to be Java 11 compatible, but it's not. -->
+			2.29 was supposed to be Java 11 compatible, but it's not. - - >
 		<dependency>
 			<groupId>javax.xml.bind</groupId>
 			<artifactId>jaxb-api</artifactId>
@@ -104,7 +104,7 @@
 			<artifactId>activation</artifactId>
 			<version>1.1.1</version>
 		</dependency>
-		<!-- -->
+		< ! - - -->
 
 		<dependency>
 			<groupId>org.slf4j</groupId>
