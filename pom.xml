@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.dieselpoint</groupId>
 	<artifactId>dieseljax</artifactId>
-	<version>1.3</version>
+	<version>1.4-SNAPSHOT</version>
 	<name>Dieseljax Parent Project</name>
 	<packaging>pom</packaging>
 
@@ -49,17 +49,63 @@
 	</modules>
 
 	<distributionManagement>
-		<snapshotRepository>
-			<id>ossrh</id>
-			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
-		</snapshotRepository>
 		<repository>
-			<id>ossrh</id>
-			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+			<id>dieselpoint-s3-release-repo</id>
+			<name>S3 Release Repository</name>
+			<url>s3://com.dieselpoint.repository/release</url>
 		</repository>
+		<snapshotRepository>
+			<id>dieselpoint-s3-snapshot-repo</id>
+			<name>S3 Snapshot Repository</name>
+			<url>s3://com.dieselpoint.repository/snapshot</url>
+		</snapshotRepository>
 	</distributionManagement>
 
+	<repositories>
+		<repository>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>central</id>
+			<name>Maven Repository Switchboard</name>
+			<url>http://repo1.maven.org/maven2</url>
+		</repository>
+		<repository>
+			<id>dieselpoint-s3-release-repo</id>
+			<name>S3 Release Repository</name>
+			<url>s3://com.dieselpoint.repository/release</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>dieselpoint-s3-snapshot-repo</id>
+			<name>S3 Snapshot Repository</name>
+			<url>s3://com.dieselpoint.repository/snapshot</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
+
+
+
+
 	<build>
+		<extensions>
+			<!-- this is for the maven repo in s3 to work -->
+			<extension>
+				<groupId>org.springframework.build</groupId>
+				<artifactId>aws-maven</artifactId>
+				<version>5.0.0.RELEASE</version>
+			</extension>
+		</extensions>
 		<pluginManagement>
 			<plugins>
 				<plugin>
@@ -98,7 +144,7 @@
 					</configuration>
 				</plugin>
 				<!-- Commenting this out because 3.0.0 fails with an NPE, and 3.1.0 fails 
-					with a JAVA_HOME not found exception. This plugin is a waste of time. -->
+					with a JAVA_HOME not found exception. This plugin is a waste of time. - - >
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-javadoc-plugin</artifactId>
@@ -117,8 +163,9 @@
 						</execution>
 					</executions>
 				</plugin>
+				-->
 				<!-- this plugin is also a waste of time, because it fails to work with 
-					mvn versions:display-plugin-updates -->
+					mvn versions:display-plugin-updates - - >
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-enforcer-plugin</artifactId>
@@ -139,6 +186,9 @@
 						</execution>
 					</executions>
 				</plugin>
+				-->
+				
+				<!-- nope, not doing this either
 				<plugin>
 					<groupId>org.sonatype.plugins</groupId>
 					<artifactId>nexus-staging-maven-plugin</artifactId>
@@ -150,12 +200,13 @@
 						<autoReleaseAfterClose>true</autoReleaseAfterClose>
 					</configuration>
 				</plugin>
+				 -->
 
 				<!-- This doesn't work, because the deploy phase is too late, and the 
 					verify phase doesn't allow others to do an install without my gpg keys. Yet 
 					more Maven stupidity. The convoluted, unnecessary, half-assed workaround 
 					is here: https://stackoverflow.com/questions/36824032/proper-execution-phase-for-maven-gpg-plugin 
-					Long term, the solution is to dump Maven Central altogether -->
+					Long term, the solution is to dump Maven Central altogether - - >
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-gpg-plugin</artifactId>
@@ -170,6 +221,7 @@
 						</execution>
 					</executions>
 				</plugin>
+				-->
 
 			</plugins>
 		</pluginManagement>
