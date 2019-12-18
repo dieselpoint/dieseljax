@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>com.dieselpoint</groupId>
 		<artifactId>dieseljax</artifactId>
-		<version>1.4-SNAPSHOT</version>
+		<version>1.4</version>
 	</parent>
 
 	<artifactId>dieseljax.core</artifactId>

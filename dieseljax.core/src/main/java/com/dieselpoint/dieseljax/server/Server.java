@@ -6,13 +6,13 @@ import java.net.InetAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
 import java.util.Collections;
-import java.util.TimeZone;
 
 import org.eclipse.jetty.server.ConnectionFactory;
 import org.eclipse.jetty.server.Connector;
+import org.eclipse.jetty.server.CustomRequestLog;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.RequestLog;
-import org.eclipse.jetty.server.Slf4jRequestLog;
+import org.eclipse.jetty.server.Slf4jRequestLogWriter;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -326,19 +326,23 @@ public class Server {
 				 * This is the newer way of handling request logs. Slf4jRequestLog is deprecated
 				 * in the newest version of Jetty. Unfortunately, the development of Jersey is 
 				 * lagging and uses an older Jetty, so we have to use the old request logger.
-				 * Current Jersey version is 2.28. Wait to see what 2.29 does.		
+				 * Current Jersey version is 2.28. Wait to see what 2.29 does.
+				 */
+
 				Slf4jRequestLogWriter writer = new Slf4jRequestLogWriter();
 				CustomRequestLog crl = new CustomRequestLog(writer, CustomRequestLog.EXTENDED_NCSA_FORMAT);
 				crl.setIgnorePaths(ignorePaths);
-				server.setRequestLog(crl);
-				*/
+				requestLog = crl;
 
+				/*-
+				 *  older version of requestlog. keep it here for now.
 				Slf4jRequestLog rl = new Slf4jRequestLog();
 				rl.setExtended(true);
 				rl.setLogTimeZone(TimeZone.getDefault().getID());
 				rl.setLogLatency(true);
 				rl.setIgnorePaths(ignorePaths);
 				requestLog = rl;
+				*/
 			}
 			jettyServer.setRequestLog(requestLog);
 		}
