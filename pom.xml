@@ -87,7 +87,12 @@
 
 	<build>
 		<extensions>
-			<!-- this is for the maven repo in s3 to work -->
+			<!-- This is for the maven repo in s3 to work -->
+			<!-- When this stops working (and it will, eventually) try this one:
+			https://egkatzioura.com/2018/04/09/host-your-maven-artifacts-using-amazon-s3/
+			The reason I'm not doing it now is that it requires setting the region which is a bit
+			of a headache. See various region providers here: https://github.com/gkatzioura/CloudStorageMaven/tree/master/S3StorageWagon/src/main/java/com/gkatzioura/maven/cloud/s3
+			-->
 			<extension>
 				<groupId>org.springframework.build</groupId>
 				<artifactId>aws-maven</artifactId>
