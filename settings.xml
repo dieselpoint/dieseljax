@@ -6,8 +6,14 @@
 	<servers>
 		<server>
 			<id>github</id>
-			<username>ccleve</username>
-            <password>${GITHUB_TOKEN}</password>
+			<username>dieselpoint</username>
+			<password>${GITHUB_TOKEN}</password>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
 		</server>
 	</servers>
 </settings>
