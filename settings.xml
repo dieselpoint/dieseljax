@@ -8,12 +8,7 @@
 			<id>github</id>
 			<username>dieselpoint</username>
 			<password>${GITHUB_TOKEN}</password>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
+
 		</server>
 	</servers>
 </settings>
