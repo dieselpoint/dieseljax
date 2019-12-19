@@ -6,7 +6,7 @@
 	<servers>
 		<server>
 			<id>id</id>
-			<username>x-access-token</username>
+			<username>dieselpoint</username>
             <password>${GITHUB_TOKEN}</password>
 		</server>
 	</servers>
