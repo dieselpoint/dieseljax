@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.dieselpoint</groupId>
 	<artifactId>dieseljax</artifactId>
-	<version>1.5-SNAPSHOT</version>
+	<version>1.5</version>
 	<name>Dieseljax Parent Project</name>
 	<packaging>pom</packaging>
 
@@ -47,35 +47,32 @@
 	<modules>
 		<module>dieseljax.core</module>
 	</modules>
-	
-	
-	
-	<distributionManagement>
-   <repository>
-     <id>github</id>
-     <name>GitHub Dieselpoint Apache Maven Packages</name>
-     <url>https://maven.pkg.github.com/dieselpoint/dieselpoint_repository</url>
-   </repository>
-</distributionManagement>
-	
-	<repositories>
-        <repository>
-          <id>central</id>
-          <url>https://repo1.maven.org/maven2</url>
-          <releases><enabled>true</enabled></releases>
-          <snapshots><enabled>false</enabled></snapshots>
-        </repository>
-        <repository>
-          <id>github</id>
 
-          <url>https://maven.pkg.github.com/dieselpoint/dieselpoint_repository</url>
-        </repository>
-      </repositories>
-	
-	
-	
-	
-	
+	<distributionManagement>
+		<repository>
+			<id>github</id>
+			<name>GitHub Dieselpoint Apache Maven Packages</name>
+			<url>https://maven.pkg.github.com/dieselpoint/dieselpoint_repository</url>
+		</repository>
+	</distributionManagement>
+
+	<repositories>
+		<repository>
+			<id>central</id>
+			<url>https://repo1.maven.org/maven2</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</repository>
+		<repository>
+			<id>github</id>
+			<url>https://maven.pkg.github.com/dieselpoint/dieselpoint_repository</url>
+		</repository>
+	</repositories>
+
 	<build>
 		<pluginManagement>
 			<plugins>
