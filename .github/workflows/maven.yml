@@ -24,4 +24,4 @@ jobs:
       # env:
       #  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       # run: mvn --settings settings.xml -X -e deploy 
-      mvn deploy -Dregistry=https://maven.pkg.github.com/dieselpoint -Dtoken=GH_TOKEN
+      run: mvn deploy -Dregistry=https://maven.pkg.github.com/dieselpoint -Dtoken=GH_TOKEN
