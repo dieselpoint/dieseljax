@@ -21,7 +21,5 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-maven-
     - name: Build with Maven
-      env:
-        S3_REPO_USERNAME: ${{ secrets.S3_REPO_USERNAME }}
-        S3_REPO_PASSWORD: ${{ secrets.S3_REPO_PASSWORD }}
-      run: mvn --settings settings.xml deploy
+      run: mvn deploy
+    

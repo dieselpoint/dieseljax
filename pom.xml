@@ -47,58 +47,36 @@
 	<modules>
 		<module>dieseljax.core</module>
 	</modules>
-
+	
+	
+	
 	<distributionManagement>
-		<repository>
-			<id>dieselpoint-s3-release-repo</id>
-			<name>S3 Release Repository</name>
-			<url>s3://com.dieselpoint.repository/release</url>
-		</repository>
-		<!-- <snapshotRepository> <id>dieselpoint-s3-snapshot-repo</id> <name>S3 
-			Snapshot Repository</name> <url>s3://com.dieselpoint.repository/snapshot</url> 
-			</snapshotRepository> -->
-	</distributionManagement>
-
+   <repository>
+     <id>github</id>
+     <name>GitHub Dieselpoint Apache Maven Packages</name>
+     <url>https://maven.pkg.github.com/dieselpoint/dieselpoint_repository</url>
+   </repository>
+</distributionManagement>
+	
 	<repositories>
-		<repository>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-			<id>central</id>
-			<name>Maven Repository Switchboard</name>
-			<url>http://repo1.maven.org/maven2</url>
-		</repository>
-		<repository>
-			<id>dieselpoint-s3-release-repo</id>
-			<name>S3 Release Repository</name>
-			<url>s3://com.dieselpoint.repository/release</url>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</repository>
-		<!-- <repository> <id>dieselpoint-s3-snapshot-repo</id> <name>S3 Snapshot 
-			Repository</name> <url>s3://com.dieselpoint.repository/snapshot</url> <releases> 
-			<enabled>false</enabled> </releases> <snapshots> <enabled>true</enabled> 
-			</snapshots> </repository> -->
-	</repositories>
+        <repository>
+          <id>central</id>
+          <url>https://repo1.maven.org/maven2</url>
+          <releases><enabled>true</enabled></releases>
+          <snapshots><enabled>false</enabled></snapshots>
+        </repository>
+        <repository>
+          <id>github</id>
 
+          <url>https://maven.pkg.github.com/dieselpoint/dieselpoint_repository</url>
+        </repository>
+      </repositories>
+	
+	
+	
+	
+	
 	<build>
-		<extensions>
-			<!-- This is for the maven repo in s3 to work -->
-			<!-- When this stops working (and it will, eventually) try this one:
-			https://egkatzioura.com/2018/04/09/host-your-maven-artifacts-using-amazon-s3/
-			The reason I'm not doing it now is that it requires setting the region which is a bit
-			of a headache. See various region providers here: https://github.com/gkatzioura/CloudStorageMaven/tree/master/S3StorageWagon/src/main/java/com/gkatzioura/maven/cloud/s3
-			-->
-			<extension>
-				<groupId>org.springframework.build</groupId>
-				<artifactId>aws-maven</artifactId>
-				<version>5.0.0.RELEASE</version>
-			</extension>
-		</extensions>
 		<pluginManagement>
 			<plugins>
 				<plugin>
