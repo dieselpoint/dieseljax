@@ -23,5 +23,5 @@ jobs:
     - name: Build with Maven
       # env:
       #  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      # run: mvn --settings settings.xml -X -e deploy 
-      run: mvn deploy -Dregistry=https://maven.pkg.github.com/dieselpoint -Dtoken=${{ secrets.GITHUB_TOKEN }}
+      run: mvn --settings settings.xml -X -e deploy 
+      # run: mvn deploy -Dregistry=https://maven.pkg.github.com/dieselpoint -Dtoken=${{ secrets.GITHUB_TOKEN }}
